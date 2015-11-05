@@ -11,7 +11,7 @@ public:
 
   inline typename Traits::Edge startEdge() const { return eLast_; }
 
-  inline void foundEgde(typename Traits::Edge e) const { eLast_ = e; }
+  inline void foundEdge(typename Traits::Edge e) const { eLast_ = e; }
 
   inline void visitEdge(typename Traits::Edge) const {}
 

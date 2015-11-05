@@ -16,8 +16,8 @@ public:
 
 private:
   std::random_device rd_;
-  std::mt19937 gen_ = std::mt19937(rd_());
-  std::bernoulli_distribution d_ = std::bernoulli_distribution(0.5);
+  mutable std::mt19937 gen_ = std::mt19937(rd_());
+  mutable std::bernoulli_distribution d_ = std::bernoulli_distribution(0.5);
 };
 
 } // namespace TriPQ
