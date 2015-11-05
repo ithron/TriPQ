@@ -66,8 +66,8 @@ triangulate(std::vector<Point_3> &points) {
 
 std::vector<Point_3> genPoints() {
   std::vector<Point_3> v;
-  unsigned int N = 100;
-  unsigned int M = 100;
+  unsigned int N = 1000;
+  unsigned int M = 1000;
   v.reserve(N * M);
   for (unsigned int i = 0; i < N; ++i) {
     double const theta = M_PI * double(i) / double(N);
@@ -124,7 +124,7 @@ int main(int, char **) {
   typedef TriPQ::PointQuery<TriPQ::CGALSphericalPolyhedronTraits<Polyhedron>>
       Query;
 
-  std::size_t const N = 1000000;
+  std::size_t const N = 100000;
 
   // Generate polyhedron
   auto const p = constructPolyhedron();
@@ -135,6 +135,10 @@ int main(int, char **) {
     queryPoints[i] = sphericalToCart(Point_2(theta(gen), phi(gen)));
   }
 
+  std::cout << "Triangulation dimensions:" << std::endl;
+  std::cout << "\t" << p.size_of_vertices() << " vertices" << std::endl;
+  std::cout << "\t" << p.size_of_facets() << " triangles" << std::endl;
+  std::cout << "\t" << p.size_of_halfedges() / 2 << " edges" << std::endl;
   std::cout << "Querying " << queryPoints.size() << " points..." << std::flush;
   TimePoint const start = Clock::now();
 
