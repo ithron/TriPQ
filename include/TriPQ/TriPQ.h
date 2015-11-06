@@ -68,7 +68,6 @@ public:
 
     // According to Brown et al. [1] this loop is guaranteed to terminate
     for (;;) {
-      this->visitEdge(e);
       auto const eNext = NextEdge()(e);
       // Onext in [1]
       auto const e1 = OppositeEdge()(NextEdge()(eNext));
@@ -88,6 +87,7 @@ public:
       else {
         e = this->selectEdge(e1, e2, p);
       }
+      this->visitEdge(e);
     }
   }
 

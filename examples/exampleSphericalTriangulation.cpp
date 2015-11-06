@@ -1,5 +1,8 @@
-#include <TriPQ/TriPQ.h>
 #include <TriPQ/CGAL_Spherical_Polyhedron_Traits.h>
+#include <TriPQ/SelectNearestEdge3.h>
+#include <TriPQ/StartFromMostLocatedEdge.h>
+#include <TriPQ/StartFromFixedEdge.h>
+#include <TriPQ/TriPQ.h>
 
 #include <CGAL/Triangulation_vertex_base_with_info_2.h>
 #include <CGAL/Polyhedron_incremental_builder_3.h>
@@ -64,15 +67,14 @@ triangulate(std::vector<Point_3> &points) {
   return facets;
 }
 
-std::vector<Point_3> genPoints() {
+std::vector<Point_3> genPoints(std::size_t const N,
+                               Point_2 offset = Point_2(0, 0)) {
   std::vector<Point_3> v;
-  unsigned int N = 1000;
-  unsigned int M = 1000;
-  v.reserve(N * M);
+  v.reserve(N * N);
   for (unsigned int i = 0; i < N; ++i) {
-    double const theta = M_PI * double(i) / double(N);
-    for (unsigned int j = 0; j < M; ++j) {
-      double const phi = 2.0 * M_PI * double(j) / double(M);
+    double const theta = offset[0] + M_PI * double(i) / double(N);
+    for (unsigned int j = 0; j < N; ++j) {
+      double const phi = offset[1] + 2.0 * M_PI * double(j) / double(N);
       v.push_back(sphericalToCart(Point_2(theta, phi)));
     }
   }
@@ -83,7 +85,7 @@ std::vector<Point_3> genPoints() {
 
 Polyhedron constructPolyhedron() {
   typedef Polyhedron::HalfedgeDS HDS;
-  auto v = genPoints();
+  auto v = genPoints(1000);
   auto const f = triangulate(v);
 
   struct Builder : public CGAL::Modifier_base<HDS> {
@@ -113,44 +115,153 @@ Polyhedron constructPolyhedron() {
   return p;
 }
 
-int main(int, char **) {
+static std::size_t comparisonCount = 0;
+
+template <class P>
+struct CountingTraits : public TriPQ::CGALSphericalPolyhedronTraits<P> {
+  typedef TriPQ::CGALSphericalPolyhedronTraits<P> Base;
+  struct IsRightOf {
+    template <class Point>
+    inline bool operator()(typename Base::Edge e, Point const &p) const {
+      ++comparisonCount;
+      return typename Base::IsRightOf()(e, p);
+    }
+  };
+};
+
+namespace std {
+
+template <>
+struct hash<typename CountingTraits<Polyhedron>::Edge>
+    : public hash<void const *> {
+  size_t operator()(typename CountingTraits<Polyhedron>::Edge e) const {
+    return hash<void const *>()(static_cast<void const *>(&*e));
+  }
+};
+
+} // namespace std
+
+template <class Query, class Points>
+void runQuery(Query const &q, Points const &p) {
+  comparisonCount = 0;
   using Clock = std::chrono::high_resolution_clock;
   using TimePoint = std::chrono::time_point<Clock>;
-  std::random_device rd;
-  std::mt19937 gen(rd());
-  std::uniform_real_distribution<double> theta(0, M_PI);
-  std::uniform_real_distribution<double> phi(0, 2.0 * M_PI);
-
-  typedef TriPQ::PointQuery<TriPQ::CGALSphericalPolyhedronTraits<Polyhedron>>
-      Query;
-
-  std::size_t const N = 100000;
-
-  // Generate polyhedron
-  auto const p = constructPolyhedron();
-
-  std::vector<Point_3> queryPoints(N);
-  // generate query points
-  for (unsigned int i = 0; i < N; ++i) {
-    queryPoints[i] = sphericalToCart(Point_2(theta(gen), phi(gen)));
-  }
-
-  std::cout << "Triangulation dimensions:" << std::endl;
-  std::cout << "\t" << p.size_of_vertices() << " vertices" << std::endl;
-  std::cout << "\t" << p.size_of_facets() << " triangles" << std::endl;
-  std::cout << "\t" << p.size_of_halfedges() / 2 << " edges" << std::endl;
-  std::cout << "Querying " << queryPoints.size() << " points..." << std::flush;
+  std::cout << "\tQuerying " << p.size() << " points..." << std::flush;
   TimePoint const start = Clock::now();
 
-  Query q(p.halfedges_begin());
-  q(queryPoints);
+  q(p);
 
   using ms = std::chrono::milliseconds;
   TimePoint const end = Clock::now();
   auto const timeDiff = end - start;
   std::cout << "Done." << std::endl;
-  std::cout << "Took " << std::chrono::duration_cast<ms>(timeDiff).count()
+  std::cout << "\tTook " << std::chrono::duration_cast<ms>(timeDiff).count()
             << "ms" << std::endl;
+  std::cout << "\tOn average " << double(comparisonCount) / double(p.size())
+            << " comparisons" << std::endl;
+}
+
+int main(int, char **) {
+  std::random_device rd;
+  std::mt19937 gen(rd());
+  std::uniform_real_distribution<double> theta(0, M_PI);
+  std::uniform_real_distribution<double> phi(0, 2.0 * M_PI);
+
+  typedef TriPQ::PointQuery<CountingTraits<Polyhedron>,
+                            TriPQ::StartFromFixedEdge,
+                            TriPQ::RandomEdgeSelect> QueryFixedRandom;
+  typedef TriPQ::PointQuery<CountingTraits<Polyhedron>,
+                            TriPQ::StartFromFixedEdge,
+                            TriPQ::SelectNearestEdge3> QueryFixedNearest;
+  typedef TriPQ::PointQuery<CountingTraits<Polyhedron>,
+                            TriPQ::StartFromLastEdge,
+                            TriPQ::RandomEdgeSelect> QueryLastRandom;
+  typedef TriPQ::PointQuery<CountingTraits<Polyhedron>,
+                            TriPQ::StartFromLastEdge,
+                            TriPQ::SelectNearestEdge3> QueryLastNearest;
+  typedef TriPQ::PointQuery<CountingTraits<Polyhedron>,
+                            TriPQ::StartFromMostLocatedEdge,
+                            TriPQ::RandomEdgeSelect> QueryMRRandom;
+  typedef TriPQ::PointQuery<CountingTraits<Polyhedron>,
+                            TriPQ::StartFromMostLocatedEdge,
+                            TriPQ::SelectNearestEdge3> QueryMRNearest;
+  typedef TriPQ::PointQuery<CountingTraits<Polyhedron>,
+                            TriPQ::StartFromMostLocatedEdgeUnordered,
+                            TriPQ::RandomEdgeSelect> QueryMRURandom;
+  typedef TriPQ::PointQuery<CountingTraits<Polyhedron>,
+                            TriPQ::StartFromMostLocatedEdgeUnordered,
+                            TriPQ::SelectNearestEdge3> QueryMRUNearest;
+
+  std::size_t const N = 40000;
+
+  // Generate polyhedron
+  auto const p = constructPolyhedron();
+
+  std::vector<Point_3> randomPoints(N - 1);
+  // generate query points
+  for (unsigned int i = 0; i < N - 1; ++i) {
+    randomPoints[i] = sphericalToCart(Point_2(theta(gen), phi(gen)));
+  }
+
+  auto const sequencialPoints =
+      genPoints(std::sqrt(N), Point_2(theta(gen), phi(gen)));
+
+  auto const e0 = p.halfedges_begin();
+
+  std::cout << "Triangulation dimensions:" << std::endl;
+  std::cout << "\t" << p.size_of_vertices() << " vertices" << std::endl;
+  std::cout << "\t" << p.size_of_facets() << " triangles" << std::endl;
+  std::cout << "\t" << p.size_of_halfedges() / 2 << " edges" << std::endl;
+
+  std::cout << "Fixed starting edge, random edge select" << std::endl;
+  std::cout << "Random points" << std::endl;
+  runQuery(QueryFixedRandom(e0), randomPoints);
+  std::cout << "Sequencial points" << std::endl;
+  runQuery(QueryFixedRandom(e0), sequencialPoints);
+
+  std::cout << "Fixed starting edge, nearest edge" << std::endl;
+  std::cout << "Random points" << std::endl;
+  runQuery(QueryFixedNearest(e0), randomPoints);
+  std::cout << "Sequencial points" << std::endl;
+  runQuery(QueryFixedNearest(e0), sequencialPoints);
+
+  std::cout << "Last starting edge, random edge" << std::endl;
+  std::cout << "Random points" << std::endl;
+  runQuery(QueryLastRandom(e0), randomPoints);
+  std::cout << "Sequencial points" << std::endl;
+  runQuery(QueryLastRandom(e0), sequencialPoints);
+
+  std::cout << "Last starting edge, nearest edge" << std::endl;
+  std::cout << "Random points" << std::endl;
+  runQuery(QueryLastNearest(e0), randomPoints);
+  std::cout << "Sequencial points" << std::endl;
+  runQuery(QueryLastNearest(e0), sequencialPoints);
+
+  std::cout << "Most located starting edge, random edge" << std::endl;
+  std::cout << "Random points" << std::endl;
+  runQuery(QueryMRRandom(e0), randomPoints);
+  std::cout << "Sequencial points" << std::endl;
+  runQuery(QueryMRRandom(e0), sequencialPoints);
+
+  std::cout << "Most located starting edge, nearest edge" << std::endl;
+  std::cout << "Random points" << std::endl;
+  runQuery(QueryMRNearest(e0), randomPoints);
+  std::cout << "Sequencial points" << std::endl;
+  runQuery(QueryMRNearest(e0), sequencialPoints);
+
+  std::cout << "Most located starting edge (unordered map), random edge"
+            << std::endl;
+  std::cout << "Random points" << std::endl;
+  runQuery(QueryMRUNearest(e0), randomPoints);
+  std::cout << "Sequencial points" << std::endl;
+  runQuery(QueryMRURandom(e0), sequencialPoints);
+
+  std::cout << "Most located starting edge (unordered map), nearest edge"
+            << std::endl;
+  std::cout << "Random points" << std::endl;
+  runQuery(QueryMRUNearest(e0), randomPoints);
+  std::cout << "Sequencial points" << std::endl;
+  runQuery(QueryMRUNearest(e0), sequencialPoints);
 
   return EXIT_SUCCESS;
 }
