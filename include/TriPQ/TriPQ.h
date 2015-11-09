@@ -7,11 +7,22 @@
 #include <iterator>
 #include <vector>
 #if defined(TriPQLoopDetection) && !defined(NDEBUG)
+#ifndef TriPQThrowOnLoop
 #include <cassert>
+#else
+#include <exception>
+#endif
 #include <set>
 #endif
 
 namespace TriPQ {
+
+#if defined(TriPQLoopDetection) && defined(TriPQThrowOnLoop) && !defined(NDEBUG)
+class LoopException : public std::runtime_error {
+public:
+  LoopException() : std::runtime_error("Found a loop."){};
+};
+#endif
 
 struct SingleQueryTag {};
 
@@ -100,7 +111,11 @@ public:
 
 #if defined(TriPQLoopDetection) && !defined(NDEBUG)
   void visitEdge(Edge e) const {
+#ifndef TriPQThrowOnLoop
     assert(visitedEdges_.find(e) == visitedEdges_.end() && "Loop detected");
+#else
+    if (visitedEdges_.find(e) != visitedEdges_.end()) throw(LoopException());
+#endif
     visitedEdges_.insert(e);
     StartEdge::visitEdge(e);
   }

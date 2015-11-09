@@ -6,6 +6,11 @@ project(TriPQ
 )
 
 option(DEBUG_LOOP_DETECTION "Loop detection in debug build?" OFF)
+if (DEBUG_LOOP_DETECTION)
+  option(DEBUG_THROW_ON_LOOP
+    "Throw a LoopException instead of assert when detecting a loop?" OFF
+  )
+endif()
 
 add_library(TriPQ INTERFACE)
 target_include_directories(TriPQ INTERFACE
@@ -14,7 +19,13 @@ target_include_directories(TriPQ INTERFACE
 )
 
 if(DEBUG_LOOP_DETECTION)
-  target_compile_definitions(TriPQ INTERFACE TriPQLoopDetection)
+  if (DEBUG_THROW_ON_LOOP)
+    target_compile_definitions(TriPQ INTERFACE
+      TriPQLoopDetection TriPQThrowOnLoop
+    )
+  else()
+    target_compile_definitions(TriPQ INTERFACE TriPQLoopDetection)
+  endif()
 endif()
 
 target_compile_features(TriPQ INTERFACE
