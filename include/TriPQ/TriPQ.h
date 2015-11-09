@@ -6,6 +6,10 @@
 
 #include <iterator>
 #include <vector>
+#if defined(TriPQLoopDetection) && !defined(NDEBUG)
+#include <cassert>
+#include <set>
+#endif
 
 namespace TriPQ {
 
@@ -63,6 +67,9 @@ public:
   /// containing p on its left side
   template <class Point> Edge operator()(Point const &p, SingleQueryTag) const {
 
+#if defined(TriPQLoopDetection) && !defined(NDEBUG)
+    visitedEdges_.clear();
+#endif
     auto e = this->startEdge();
     if (IsRightOf()(e, p)) e = OppositeEdge()(e);
 
@@ -91,6 +98,14 @@ public:
     }
   }
 
+#if defined(TriPQLoopDetection) && !defined(NDEBUG)
+  void visitEdge(Edge e) const {
+    assert(visitedEdges_.find(e) == visitedEdges_.end() && "Loop detected");
+    visitedEdges_.insert(e);
+    StartEdge::visitEdge(e);
+  }
+#endif
+
   /// Run point queries for several points at once
   template <class InputIterator, class OutputIterator>
   void operator()(InputIterator start, InputIterator end,
@@ -115,6 +130,11 @@ public:
   std::vector<Edge> operator()(Container const &points) const {
     return operator()(points.begin(), points.end());
   }
+
+#if defined(TriPQLoopDetection) && !defined(NDEBUG)
+private:
+  mutable std::set<Edge> visitedEdges_;
+#endif
 };
 
 } // namespace TriPQ

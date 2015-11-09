@@ -5,11 +5,17 @@ project(TriPQ
   LANGUAGES CXX
 )
 
+option(DEBUG_LOOP_DETECTION "Loop detection in debug build?" OFF)
+
 add_library(TriPQ INTERFACE)
 target_include_directories(TriPQ INTERFACE
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
   $<INSTALL_INTERFACE:include>
 )
+
+if(DEBUG_LOOP_DETECTION)
+  target_compile_definitions(TriPQ INTERFACE TriPQLoopDetection)
+endif()
 
 target_compile_features(TriPQ INTERFACE
   cxx_auto_type
