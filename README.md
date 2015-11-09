@@ -11,7 +11,7 @@ However it is recommended to use `cmake` to do the build-configuration:
 git clone git@github.com:ithron/TriPQ.git
 mkdir TriPQ-build && cd TriPQ-build
 cmake ../TriPQ
-make && make install
+make && sudo make install
 ```
 This will install the headers into e.g. `/usr/local/include/TriPQ` and also installs a cmake configuration file into `/usr/local/lib/cmake/TriPQ`.
 When using cmake for your project configuration just set `TriPQ_DIR` to `/usr/lib/cmake/TriPQ` and write in your CMakeLists.txt
