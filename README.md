@@ -4,6 +4,30 @@ Template library for point queries in triangulations
 The implemented algorithm is based on P. Brown and C. T. Faigle, “A robust
 efficient algorithm for point location in triangulations,” 1997.
 
+## Build Instructions
+TriPQ is a header only library, so copying `include/TriPQ` to your project's source folder is totally fine.
+However it is recommended to use `cmake` to do the build-configuration:
+```
+git clone git@github.com:ithron/TriPQ.git
+mkdir TriPQ-build && cd TriPQ-build
+cmake ../TriPQ
+make && make install
+```
+This will install the headers into e.g. `/usr/local/include/TriPQ` and also installs a cmake configuration file into `/usr/local/lib/cmake/TriPQ`.
+When using cmake for your project configuration just set `TriPQ_DIR` to `/usr/lib/cmake/TriPQ` and write in your CMakeLists.txt
+```
+find_package(TriPQ)
+...
+target_link_libraries(MyTarget .... TriPQ)
+```
+Be aware that TriPQ uses c++14 features, so using a modern compiler (e.g. clang-3.5 or gcc-5) is required.
+
+### Notes
+The termination of the algorithm with the nearest edge selection policy is poofed in [1]. However, this only holds for planar triangulations. For example on spherical 2-manifold meshes the algorithm is not guaranteed to terminate when using the nearest edge policy (it does for delaunay triangulations of course). For that cases the random edge selection policy is a better choice.
+
+Also note that in the given example a uniform random distribution of test points is used. Therefore the most located edge strategy does not perform better than the other strageties. This should be different for a biased distribution, like a gaussian.
+
+
 ### Example output
 ```
 > ./ExampleSphericalTriangulation
@@ -85,3 +109,11 @@ Sequencial points
 	Took 4379ms
 	On average 1136.98 comparisons
 ```
+
+## ToDo
+- More documentation
+- Make the example code actually readable
+- TravisCI integration
+- Unit Test
+- More pre-defined Traits
+- More examples
