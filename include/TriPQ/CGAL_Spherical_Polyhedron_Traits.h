@@ -3,12 +3,19 @@
 
 namespace TriPQ {
 
+/// Assumes counterclockwise orientation of edges inside a triangle
 template <class Polyhedron> struct CGALSphericalPolyhedronTraits {
   typedef typename Polyhedron::Halfedge_const_handle Edge;
   typedef typename Polyhedron::Vertex_const_handle Vertex;
 
-  struct NextEdge {
-    inline Edge operator()(Edge e) const { return e->next(); }
+  struct NextEdgeAroundOrigin {
+    inline Edge operator()(Edge e) const {
+      return e->next()->next()->opposite();
+    }
+  };
+
+  struct PreviousEdgeAroundDestination {
+    inline Edge operator()(Edge e) const { return e->next()->opposite(); }
   };
 
   struct OppositeEdge {
@@ -50,7 +57,7 @@ template <class Polyhedron> struct CGALSphericalPolyhedronTraits {
   struct IsRightOf {
     template <class Point>
     inline decltype(auto) operator()(Edge e, Point const &p) const {
-      return Determinant()(EdgeOrigin()(e), EdgeDestination()(e), p) < 0;
+      return Determinant()(p, EdgeOrigin()(e), EdgeDestination()(e)) < 0;
     }
   };
 };

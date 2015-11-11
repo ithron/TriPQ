@@ -43,10 +43,12 @@ struct SingleQueryTag {};
 ///   Functors:
 ///     IsRightOf - binary functor, taking an edge and a point and returns true
 ///       if the points lies on the right hand side of the edge.
-///     NextEdge - unary functor, takes an egde and returns the next edge
-///       (couter clockwise) in the triangle.
-///     OppositeEdge - unary functor, takes an edge and returns the edge that
-///       points in the opposite direction.
+///     NextEdgeAroundOrigin - unary functor, takes an edge and returns the
+///       next edge counterclockwise around the origin of the edge
+///     PreviousEdgeAroundDestination - unary functor, takes an edge and returns
+///       the next edge clockwise around the destination of the edge
+///     OppositeEdge - unary functor, takes an edge and returns the edge
+///       pointing in the opposite direction.
 ///
 /// \tparam StartEdgePolicy a template policy class which must supply a
 ///   constructor taking an edge and a const member function startEdte()
@@ -67,7 +69,9 @@ public:
   typedef EdgeSelectionPolicy<Traits> SelectEdge;
   typedef typename Traits::Edge Edge;
   typedef typename Traits::IsRightOf IsRightOf;
-  typedef typename Traits::NextEdge NextEdge;
+  typedef typename Traits::NextEdgeAroundOrigin NextEdgeAroundOrigin;
+  typedef typename Traits::PreviousEdgeAroundDestination
+      PreviousEdgeAroundDestination;
   typedef typename Traits::OppositeEdge OppositeEdge;
 
   /// Construct a point query foe the given triangulation
@@ -86,11 +90,10 @@ public:
 
     // According to Brown et al. [1] this loop is guaranteed to terminate
     for (;;) {
-      auto const eNext = NextEdge()(e);
       // Onext in [1]
-      auto const e1 = OppositeEdge()(NextEdge()(eNext));
+      auto const e1 = NextEdgeAroundOrigin()(e);
       // Dprev in [1]
-      auto const e2 = OppositeEdge()(eNext);
+      auto const e2 = PreviousEdgeAroundDestination()(e);
       bool const rightToE1 = IsRightOf()(e1, p);
       bool const rightToE2 = IsRightOf()(e2, p);
 
