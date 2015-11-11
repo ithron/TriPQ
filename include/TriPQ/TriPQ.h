@@ -4,14 +4,12 @@
 #include <TriPQ/StartFromLastEdge.h>
 #include <TriPQ/RandomEdgeSelect.h>
 
+#include <cassert>
 #include <iterator>
 #include <vector>
+
 #if defined(TriPQLoopDetection) && !defined(NDEBUG)
-#ifndef TriPQThrowOnLoop
-#include <cassert>
-#else
 #include <exception>
-#endif
 #include <set>
 #endif
 
@@ -90,6 +88,7 @@ public:
 
     // According to Brown et al. [1] this loop is guaranteed to terminate
     for (;;) {
+      assert(!IsRightOf()(e, p) && "p must not be right of e");
       // Onext in [1]
       auto const e1 = NextEdgeAroundOrigin()(e);
       // Dprev in [1]
