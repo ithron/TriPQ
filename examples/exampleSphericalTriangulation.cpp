@@ -124,9 +124,7 @@ Polyhedron constructPolyhedron() {
       CGAL::Polyhedron_incremental_builder_3<HDS> b(hds, true);
       std::size_t vIdx = 0;
       b.begin_surface(v_.size(), f_.size());
-      for (auto const &p : v_) {
-        b.add_vertex(p)->id() = vIdx++;
-      }
+      for (auto const &p : v_) { b.add_vertex(p)->id() = vIdx++; }
       for (auto const &t : f_) {
         b.begin_facet();
         b.add_vertex_to_facet(t[2]);
@@ -145,11 +143,13 @@ Polyhedron constructPolyhedron() {
 static std::size_t comparisonCount = 0;
 
 template <class P>
-struct CountingTraits : public TriPQ::CGALSphericalPolyhedronTraits<P> {
+struct CountingTraits
+    : public TriPQ::CGALSphericalPolyhedronTraitsBase<P, CountingTraits<P>> {
   typedef TriPQ::CGALSphericalPolyhedronTraits<P> Base;
+  typedef CountingTraits<P> Self;
   struct IsRightOf {
     template <class Point>
-    inline bool operator()(typename Base::Edge e, Point const &p) const {
+    inline bool operator()(typename Self::Edge e, Point const &p) const {
       ++comparisonCount;
       return typename Base::IsRightOf()(e, p);
     }
