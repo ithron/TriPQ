@@ -31,7 +31,6 @@ Also note that in the given example a uniform random distribution of test points
 ### Example output
 ```
 > ./ExampleSphericalTriangulation
-Constructing triangulation... done.
 Triangulation dimensions:
 	249502 vertices
 	498996 triangles
@@ -39,75 +38,75 @@ Triangulation dimensions:
 Fixed starting edge, random edge select
 Random points
 	Querying 39999 points...Done.
-	Took 4265ms
-	On average 1198.02 comparisons
+	Took 5800ms
+	On average 1195.63 comparisons
 Sequencial points
 	Querying 39802 points...Done.
-	Took 5783ms
-	On average 1590.34 comparisons
+	Took 7012ms
+	On average 1502.26 comparisons
 Fixed starting edge, nearest edge
 Random points
 	Querying 39999 points...Done.
-	Took 3510ms
-	On average 1124.86 comparisons
+	Took 5153ms
+	On average 1122.14 comparisons
 Sequencial points
 	Querying 39802 points...Done.
-	Took 4754ms
-	On average 1520.04 comparisons
+	Took 6444ms
+	On average 1431.89 comparisons
 Last starting edge, random edge
 Random points
 	Querying 39999 points...Done.
-	Took 4778ms
-	On average 1110.12 comparisons
+	Took 5560ms
+	On average 1099.87 comparisons
 Sequencial points
 	Querying 39802 points...Done.
-	Took 13ms
-	On average 13.0584 comparisons
+	Took 20ms
+	On average 13.0618 comparisons
 Last starting edge, nearest edge
 Random points
 	Querying 39999 points...Done.
-	Took 3964ms
-	On average 1074.88 comparisons
+	Took 4889ms
+	On average 1065.02 comparisons
 Sequencial points
 	Querying 39802 points...Done.
-	Took 12ms
-	On average 13.0491 comparisons
+	Took 20ms
+	On average 13.0603 comparisons
 Most located starting edge, random edge
 Random points
 	Querying 39999 points...Done.
-	Took 11173ms
-	On average 1170.32 comparisons
+	Took 13149ms
+	On average 1169.87 comparisons
 Sequencial points
 	Querying 39802 points...Done.
-	Took 11718ms
-	On average 1589.25 comparisons
+	Took 12964ms
+	On average 1506.1 comparisons
 Most located starting edge, nearest edge
 Random points
 	Querying 39999 points...Done.
-	Took 8907ms
-	On average 1070.39 comparisons
+	Took 10818ms
+	On average 1067.99 comparisons
 Sequencial points
 	Querying 39802 points...Done.
-	Took 6652ms
-	On average 1136.98 comparisons
+	Took 7628ms
+	On average 1001.63 comparisons
 Most located starting edge (unordered map), random edge
 Random points
 	Querying 39999 points...Done.
-	Took 5828ms
-	On average 1070.39 comparisons
+	Took 7687ms
+	On average 1067.99 comparisons
 Sequencial points
 	Querying 39802 points...Done.
-	Took 9167ms
-	On average 1594 comparisons
+	Took 7281ms
+	On average 1115.46 comparisons
 Most located starting edge (unordered map), nearest edge
 Random points
 	Querying 39999 points...Done.
-	Took 6054ms
-	On average 1070.39 comparisons
+	Took 7619ms
+	On average 1067.99 comparisons
 Sequencial points
 	Querying 39802 points...Done.
-	Took 4379ms
-	On average 1136.98 comparisons
+	Took 6104ms
+	On average 1001.63 comparisons
 ```
 
 ## ToDo

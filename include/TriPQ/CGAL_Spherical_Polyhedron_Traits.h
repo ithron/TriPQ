@@ -7,15 +7,25 @@ namespace TriPQ {
 template <class Polyhedron> struct CGALSphericalPolyhedronTraits {
   typedef typename Polyhedron::Halfedge_const_handle Edge;
   typedef typename Polyhedron::Vertex_const_handle Vertex;
+  typedef typename Polyhedron::Point_3 Point;
 
   struct NextEdgeAroundOrigin {
     inline Edge operator()(Edge e) const {
-      return e->next()->next()->opposite();
+      auto const v = EdgeOriginVertex()(e);
+      auto const eOp = OppositeEdge()(e);
+      auto ei = v->vertex_begin();
+      while (Edge(&*ei) != eOp) ++ei;
+      return OppositeEdge()(Edge(&*--ei));
     }
   };
 
   struct PreviousEdgeAroundDestination {
-    inline Edge operator()(Edge e) const { return e->next()->opposite(); }
+    inline Edge operator()(Edge e) const {
+      auto const v = EdgeDestinationVertex()(e);
+      auto ei = v->vertex_begin();
+      while (Edge(&*ei) != e) ++ei;
+      return Edge(&*++ei);
+    }
   };
 
   struct OppositeEdge {
@@ -23,7 +33,7 @@ template <class Polyhedron> struct CGALSphericalPolyhedronTraits {
   };
 
   struct VertexPoint {
-    inline decltype(auto) operator()(Vertex v) const { return v->point(); }
+    inline Point const &operator()(Vertex v) const { return v->point(); }
   };
 
   struct ConstructPoint {
@@ -33,15 +43,25 @@ template <class Polyhedron> struct CGALSphericalPolyhedronTraits {
     }
   };
 
-  struct EdgeOrigin {
+  struct EdgeOriginVertex {
     inline decltype(auto) operator()(Edge e) const {
-      return VertexPoint()(e->opposite()->vertex());
+      return e->opposite()->vertex();
+    }
+  };
+
+  struct EdgeDestinationVertex {
+    inline decltype(auto) operator()(Edge e) const { return e->vertex(); }
+  };
+
+  struct EdgeOrigin {
+    inline Point const &operator()(Edge e) const {
+      return VertexPoint()(EdgeOriginVertex()(e));
     }
   };
 
   struct EdgeDestination {
-    inline decltype(auto) operator()(Edge e) const {
-      return VertexPoint()(e->vertex());
+    inline Point const &operator()(Edge e) const {
+      return VertexPoint()(EdgeDestinationVertex()(e));
     }
   };
 
@@ -55,8 +75,7 @@ template <class Polyhedron> struct CGALSphericalPolyhedronTraits {
   };
 
   struct IsRightOf {
-    template <class Point>
-    inline decltype(auto) operator()(Edge e, Point const &p) const {
+    template <class Pt> inline bool operator()(Edge e, Pt const &p) const {
       return Determinant()(p, EdgeOrigin()(e), EdgeDestination()(e)) < 0;
     }
   };
