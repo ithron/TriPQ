@@ -112,7 +112,6 @@ Sequencial points
 ## ToDo
 - More documentation
 - Make the example code actually readable
-- TravisCI integration
 - Unit Test
 - More pre-defined Traits
 - More examples
