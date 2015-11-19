@@ -1,4 +1,4 @@
-# TriPQ
+# TriPQ [![Build Status](https://travis-ci.org/ithron/TriPQ.svg?branch=master)](https://travis-ci.org/ithron/TriPQ)
 Template library for point queries in triangulations
 
 The implemented algorithm is based on P. Brown and C. T. Faigle, “A robust
