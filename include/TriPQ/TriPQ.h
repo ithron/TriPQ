@@ -72,6 +72,9 @@ public:
       PreviousEdgeAroundDestination;
   typedef typename Traits::OppositeEdge OppositeEdge;
 
+  PointQuery(PointQuery const &q) : PointQuery(q.startEdge()) {}
+  PointQuery(PointQuery &) = default;
+
   /// Construct a point query foe the given triangulation
   PointQuery(Edge e0) : StartEdge(e0) {}
 

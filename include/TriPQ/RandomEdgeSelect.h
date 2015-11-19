@@ -9,6 +9,9 @@ template <class Traits> class RandomEdgeSelect {
 public:
   typedef typename Traits::Edge Edge;
 
+  RandomEdgeSelect() = default;
+  RandomEdgeSelect(RandomEdgeSelect &&) = default;
+
   template <class Point>
   inline Edge selectEdge(Edge e1, Edge e2, Point const &) const {
     return d_(gen_) ? e1 : e2;
