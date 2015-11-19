@@ -13,24 +13,15 @@ struct CGALSphericalPolyhedronTraitsBase {
   typedef typename Polyhedron::Point_3 Point;
 
   struct NextEdgeAroundOrigin {
-    inline Edge operator()(Edge e) const {
-      // auto const v = EdgeOriginVertex()(e);
-      // auto const eOp = OppositeEdge()(e);
-      // auto ei = v->vertex_begin();
-      // while (Edge(&*ei) != eOp) ++ei;
-      // return OppositeEdge()(Edge(&*--ei));
-      return e->prev()->opposite();
-    }
+    inline Edge operator()(Edge e) const { return e->prev()->opposite(); }
   };
 
   struct PreviousEdgeAroundDestination {
-    inline Edge operator()(Edge e) const {
-      // auto const v = EdgeDestinationVertex()(e);
-      // auto ei = v->vertex_begin();
-      // while (Edge(&*ei) != e) ++ei;
-      // return Edge(&*++ei);
-      return e->next()->opposite();
-    }
+    inline Edge operator()(Edge e) const { return e->next()->opposite(); }
+  };
+
+  struct NextEdge {
+    inline Edge operator()(Edge e) const { return e->next(); }
   };
 
   struct OppositeEdge {
@@ -78,10 +69,20 @@ struct CGALSphericalPolyhedronTraitsBase {
       typedef K::Vector_3 Vector;
       auto const a = typename Derived::EdgeOrigin()(e);
       auto const b = typename Derived::EdgeDestination()(e);
+      auto const c =
+          typename Derived::EdgeDestination()(typename Derived::NextEdge()(e));
 
-      return CGAL::orientation(Vector(p[0], p[1], p[2]),
-                               Vector(a[0], a[1], a[2]),
-                               Vector(b[0], b[1], b[2])) == CGAL::NEGATIVE;
+      auto const testOrientation =
+          CGAL::orientation(Vector(p[0], p[1], p[2]), Vector(a[0], a[1], a[2]),
+                            Vector(b[0], b[1], b[2]));
+
+      if (testOrientation == CGAL::COPLANAR) return false;
+
+      auto const refOrientation =
+          CGAL::orientation(Vector(a[0], a[1], a[2]), Vector(b[0], b[1], b[2]),
+                            Vector(c[0], c[1], c[2]));
+
+      return testOrientation != refOrientation;
     }
   };
 };
