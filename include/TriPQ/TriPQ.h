@@ -22,6 +22,15 @@ public:
 };
 #endif
 
+#if defined(TriPQHopLimit)
+class HopLimitExceeded : public std::runtime_error {
+public:
+  HopLimitExceeded(std::size_t n)
+      : std::runtime_error("Hop count " + std::to_string(n) +
+                           " exceeded limit.") {}
+};
+#endif
+
 struct SingleQueryTag {};
 
 /// Generic Point query class for 2-manifold triangulations.
@@ -66,11 +75,14 @@ public:
   typedef StartEdgePolicy<Traits> StartEdge;
   typedef EdgeSelectionPolicy<Traits> SelectEdge;
   typedef typename Traits::Edge Edge;
+  typedef typename Traits::EdgeDestination EdgeDestination;
+  typedef typename Traits::EdgeOrigin EdgeOrigin;
   typedef typename Traits::IsRightOf IsRightOf;
   typedef typename Traits::NextEdgeAroundOrigin NextEdgeAroundOrigin;
+  typedef typename Traits::OppositeEdge OppositeEdge;
+  typedef typename Traits::PointsEqual PointsEqual;
   typedef typename Traits::PreviousEdgeAroundDestination
       PreviousEdgeAroundDestination;
-  typedef typename Traits::OppositeEdge OppositeEdge;
 
   PointQuery(PointQuery const &q) : PointQuery(q.startEdge()) {}
   PointQuery(PointQuery &) = default;
@@ -82,7 +94,9 @@ public:
   /// \return Egde which either contains p or on which has the triangle
   /// containing p on its left side
   template <class Point> Edge operator()(Point const &p, SingleQueryTag) const {
-
+#if defined(TriPQHopLimit)
+    std::size_t hopCount = 0;
+#endif
 #if defined(TriPQLoopDetection) && !defined(NDEBUG)
     visitedEdges_.clear();
 #endif
@@ -92,6 +106,10 @@ public:
     // According to Brown et al. [1] this loop is guaranteed to terminate
     for (;;) {
       assert(!IsRightOf()(e, p) && "p must not be right of e");
+
+      if (PointsEqual()(p, EdgeOrigin()(e)) ||
+          PointsEqual()(p, EdgeDestination()(e)))
+        return e;
       // Onext in [1]
       auto const e1 = NextEdgeAroundOrigin()(e);
       // Dprev in [1]
@@ -111,6 +129,10 @@ public:
         e = this->selectEdge(e1, e2, p);
       }
       this->visitEdge(e);
+#if defined(TriPQHopLimit)
+      ++hopCount;
+      if (hopCount > TriPQHopLimit) throw HopLimitExceeded(hopCount);
+#endif
     }
   }
 

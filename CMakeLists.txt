@@ -28,6 +28,10 @@ if(DEBUG_LOOP_DETECTION)
   endif()
 endif()
 
+if(MAXIMUM_HOP_LIMIT)
+  target_compile_definitions(TriPQ INTERFACE TriPQHopLimit=${MAXIMUM_HOP_LIMIT})
+endif()
+
 target_compile_features(TriPQ INTERFACE
   cxx_auto_type
   cxx_decltype

@@ -12,6 +12,8 @@ struct CGALSphericalPolyhedronTraitsBase {
   typedef typename Polyhedron::Vertex_const_handle Vertex;
   typedef typename Polyhedron::Point_3 Point;
 
+  static double epsilon() { return 1e-12; }
+
   struct NextEdgeAroundOrigin {
     inline Edge operator()(Edge e) const { return e->prev()->opposite(); }
   };
@@ -83,6 +85,17 @@ struct CGALSphericalPolyhedronTraitsBase {
                             Vector(c[0], c[1], c[2]));
 
       return testOrientation != refOrientation;
+    }
+  };
+
+  struct PointsEqual {
+    template <class Pt1, class Pt2> inline bool operator()(Pt1 p1, Pt2 p2) const {
+      typedef CGAL::Exact_predicates_inexact_constructions_kernel K;
+      typedef K::Vector_3 Vector;
+      Vector const a(p1[0], p1[1], p1[2]);
+      Vector const b(p2[0], p2[1], p2[2]);
+      auto const dist = (a - b).squared_length();
+      return dist < Derived::epsilon();
     }
   };
 };
