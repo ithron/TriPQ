@@ -22,7 +22,7 @@ public:
 };
 #endif
 
-#if defined(TriPQHopLimit) && defined(TriPQThowOnLopLimit)
+#if defined(TriPQHopLimit) && defined(TriPQThowOnHopLimit)
 class HopLimitExceeded : public std::runtime_error {
 public:
   HopLimitExceeded(std::size_t n)
@@ -154,7 +154,7 @@ public:
       this->visitEdge(e);
 #if defined(TriPQHopLimit)
       ++hopCount;
-#if defined(TriPQThowOnLopLimit)
+#if defined(TriPQThowOnHopLimit)
       if (hopCount > TriPQHopLimit) throw HopLimitExceeded(hopCount);
 #else
       if (hopCount > TriPQHopLimit)
