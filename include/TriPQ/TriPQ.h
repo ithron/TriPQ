@@ -100,7 +100,7 @@ public:
 
     operator Edge() const { return edge_; }
 
-    operator bool() const { return status != QueryStatus::Success; }
+    operator bool() const { return status == QueryStatus::Success; }
 
   private:
     Edge edge_;
