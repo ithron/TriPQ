@@ -22,7 +22,7 @@ public:
 };
 #endif
 
-#if defined(TriPQHopLimit)
+#if defined(TriPQHopLimit) && defined(TriPQThowOnLopLimit)
 class HopLimitExceeded : public std::runtime_error {
 public:
   HopLimitExceeded(std::size_t n)
@@ -84,6 +84,28 @@ public:
   typedef typename Traits::PreviousEdgeAroundDestination
       PreviousEdgeAroundDestination;
 
+  enum class QueryStatus {
+    Success,         // Query was successfull
+    HopLimitExceeded // Maximum hop count was reached, query was aborted
+  };
+
+  /// Return type of query. Can be implicitly converted to Edge.
+  /// Has a status code that can be checked.
+  class QueryResult {
+  public:
+    QueryStatus const status = QueryStatus::Success;
+
+    QueryResult(QueryStatus s) : status(s) {}
+    QueryResult(Edge e) : edge_(e) {}
+
+    operator Edge() const { return edge_; }
+
+    operator bool() const { return status != QueryStatus::Success; }
+
+  private:
+    Edge edge_;
+  };
+
   PointQuery(PointQuery const &q) : PointQuery(q.startEdge()) {}
   PointQuery(PointQuery &) = default;
 
@@ -93,7 +115,8 @@ public:
   /// Run a single point query
   /// \return Egde which either contains p or on which has the triangle
   /// containing p on its left side
-  template <class Point> Edge operator()(Point const &p, SingleQueryTag) const {
+  template <class Point>
+  QueryResult operator()(Point const &p, SingleQueryTag) const {
 #if defined(TriPQHopLimit)
     std::size_t hopCount = 0;
 #endif
@@ -131,7 +154,12 @@ public:
       this->visitEdge(e);
 #if defined(TriPQHopLimit)
       ++hopCount;
+#if defined(TriPQThowOnLopLimit)
       if (hopCount > TriPQHopLimit) throw HopLimitExceeded(hopCount);
+#else
+      if (hopCount > TriPQHopLimit)
+        return QueryResult(QueryStatus::HopLimitExceeded);
+#endif
 #endif
     }
   }
