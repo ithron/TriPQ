@@ -31,7 +31,7 @@ struct CGALSphericalPolyhedronTraitsBase {
   };
 
   struct VertexPoint {
-    inline Point const &operator()(Vertex v) const { return v->point(); }
+    inline auto const &operator()(Vertex v) const { return v->point(); }
   };
 
   struct ConstructPoint {
@@ -52,14 +52,14 @@ struct CGALSphericalPolyhedronTraitsBase {
   };
 
   struct EdgeOrigin {
-    inline Point const &operator()(Edge e) const {
+    inline auto operator()(Edge e) const {
       return typename Derived::VertexPoint()(
           typename Derived::EdgeOriginVertex()(e));
     }
   };
 
   struct EdgeDestination {
-    inline Point const &operator()(Edge e) const {
+    inline auto operator()(Edge e) const {
       return typename Derived::VertexPoint()(
           typename Derived::EdgeDestinationVertex()(e));
     }
