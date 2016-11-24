@@ -98,6 +98,7 @@ public:
     QueryResult(QueryStatus s) : status(s) {}
     QueryResult(Edge e) : edge_(e) {}
 
+    Edge edge() const { return edge_; }
     operator Edge() const { return edge_; }
 
     operator bool() const { return status == QueryStatus::Success; }
