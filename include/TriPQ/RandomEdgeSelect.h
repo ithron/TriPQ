@@ -3,6 +3,8 @@
 
 #include <random>
 
+#pragma clang diagnostic ignored "-Wpadded"
+
 namespace TriPQ {
 
 template <class Traits> class RandomEdgeSelect {
