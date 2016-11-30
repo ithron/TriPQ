@@ -129,11 +129,13 @@ public:
 
     // According to Brown et al. [1] this loop is guaranteed to terminate
     for (;;) {
-      assert(!IsRightOf()(e, p) && "p must not be right of e");
-
       if (PointsEqual()(p, EdgeOrigin()(e)) ||
           PointsEqual()(p, EdgeDestination()(e)))
         return e;
+      
+      if (IsRightOf()(e, p)) return e;
+      assert(!IsRightOf()(e, p) && "p must not be right of e");
+
       // Onext in [1]
       auto const e1 = NextEdgeAroundOrigin()(e);
       // Dprev in [1]
